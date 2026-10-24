@@ -40,10 +40,10 @@ if (!chosen.length || bad.length) { check('state.screens', false, `고른 화면
 
 /* ---------- 디자인 규칙 (design.md → rules.yaml.style) ---------- */
 const norm = h => { h = h.toLowerCase(); return h.length === 4 ? '#' + [...h.slice(1)].map(c => c + c).join('') : h; };
-const S = R.style;
-const palette = new Set(S.colors.map(norm));
-const fonts = new Set(S.fonts.map(f => f.toLowerCase()));
-const greens = new Set(S.green_colors.map(norm));
+const S = R.style || {};   // 새 앱은 design.md를 확정하기 전까지 비워 둘 수 있다. 값이 있는 항목만 검사한다.
+const palette = new Set((S.colors || []).map(norm));
+const fonts = new Set((S.fonts || []).map(f => f.toLowerCase()));
+const greens = new Set((S.green_colors || []).map(norm));
 const INTERACTIVE = /(^|[\s,>+~(])(button|a|input|select)(?![\w-])|\.btn|\[role=["']?button|\.tab(?![\w-])|\.chip(?![\w-])/;
 
 function styleChecks(file) {
@@ -51,39 +51,39 @@ function styleChecks(file) {
   const html = readFileSync(file, 'utf8');
   const tree = parseHtml(html);
   const root = findAll(tree, n => n.tag === 'html')[0];
-  check(`${name} · 기준 화면`, root?.attrs['data-frame'] === R.frame.attr,
+  if (R.frame?.attr) check(`${name} · 기준 화면`, root?.attrs['data-frame'] === R.frame.attr,
     `<html data-frame="${R.frame.attr}"> 필요 (지금: ${root?.attrs['data-frame'] ?? '없음'})`);
 
   const css = cssOf(html, tree);
   const svgColors = findAll(tree, n => n.attrs.fill || n.attrs.stroke).flatMap(n => [n.attrs.fill, n.attrs.stroke]).filter(Boolean).join(' ');
   const hexes = [...(css + ' ' + svgColors).matchAll(/#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g)].map(m => norm(m[0]));
   const offPalette = [...new Set(hexes.filter(h => !palette.has(h)))];
-  check(`${name} · 색`, !offPalette.length, offPalette.length ? `팔레트 밖 색: ${offPalette.join(', ')}` : '');
+  if (palette.size) check(`${name} · 색`, !offPalette.length, offPalette.length ? `팔레트 밖 색: ${offPalette.join(', ')}` : '');
 
   const funcs = [...css.matchAll(/\b(rgba?|hsla?)\(([^)]*)\)/g)];
   const badFunc = funcs.filter(([, f, a]) => !(S.rgba_only_black && f.startsWith('rgb') && /^\s*0\s*,\s*0\s*,\s*0\s*(,|$)/.test(a)));
-  check(`${name} · rgba/hsl`, !badFunc.length, badFunc.length ? `그림자용 rgba(0,0,0,…) 외 색 함수: ${badFunc.map(m => m[0]).join(', ')}` : '');
+  if (S.rgba_only_black !== undefined) check(`${name} · rgba/hsl`, !badFunc.length, badFunc.length ? `그림자용 rgba(0,0,0,…) 외 색 함수: ${badFunc.map(m => m[0]).join(', ')}` : '');
 
   const rules = cssRules(css);
   const radii = rules.flatMap(r => [...r.decls.matchAll(/border(?:-[a-z]+)*-radius\s*:\s*([^;]+)/g)].flatMap(m => m[1].split(/[\s/]+/)))
     .filter(v => v && v !== '0');
   const badR = [...new Set(radii.filter(v => { const m = v.match(/^(\d+(?:\.\d+)?)px$/); return !m || !S.radius_px.includes(Number(m[1])); }))];
-  check(`${name} · 모서리`, !badR.length, badR.length ? `허용(${S.radius_px.join('/')}px) 밖 값: ${badR.join(', ')}` : '');
+  if (S.radius_px?.length) check(`${name} · 모서리`, !badR.length, badR.length ? `허용(${S.radius_px.join('/')}px) 밖 값: ${badR.join(', ')}` : '');
 
   const fams = rules.flatMap(r => [...r.decls.matchAll(/font-family\s*:\s*([^;]+)/g)].flatMap(m => m[1].split(',')))
     .map(f => f.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
   const badF = [...new Set(fams.filter(f => !fonts.has(f.toLowerCase())))];
-  check(`${name} · 폰트`, !badF.length, badF.length ? `허용 밖 폰트: ${badF.join(', ')}` : '');
+  if (fonts.size) check(`${name} · 폰트`, !badF.length, badF.length ? `허용 밖 폰트: ${badF.join(', ')}` : '');
 
   const greenMisuse = rules.filter(r => !r.selector.includes('btn-primary') &&
     [...r.decls.matchAll(/background(?:-color)?\s*:\s*([^;]+)/g)].some(m => [...m[1].matchAll(/#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g)].some(h => greens.has(norm(h[0])))));
-  check(`${name} · 초록은 채움 버튼에만`, !greenMisuse.length, greenMisuse.map(r => r.selector).join(', '));
+  if (greens.size) check(`${name} · 초록은 채움 버튼에만`, !greenMisuse.length, greenMisuse.map(r => r.selector).join(', '));
   const primaries = findAll(tree, n => hasClass(n, 'btn-primary')).length;
-  check(`${name} · 채움 버튼 수`, primaries <= S.max_primary_buttons, `.btn-primary ${primaries}개 (최대 ${S.max_primary_buttons})`);
+  if (S.max_primary_buttons !== undefined) check(`${name} · 채움 버튼 수`, primaries <= S.max_primary_buttons, `.btn-primary ${primaries}개 (최대 ${S.max_primary_buttons})`);
 
   const small = rules.filter(r => INTERACTIVE.test(r.selector)).flatMap(r =>
     [...r.decls.matchAll(/(?:^|;|\s)(min-height|height)\s*:\s*(\d+(?:\.\d+)?)px/g)].filter(m => Number(m[2]) < S.touch_min_px).map(m => `${r.selector} { ${m[1]}: ${m[2]}px }`));
-  check(`${name} · script 없음`, S.allow_script || !findAll(tree, n => n.tag === 'script').length, '<script>는 쓰지 않는다');
+  if (S.allow_script !== undefined) check(`${name} · script 없음`, S.allow_script || !findAll(tree, n => n.tag === 'script').length, '<script>는 쓰지 않는다');
   const refs = [
     ...findAll(tree, n => n.attrs.href && n.tag === 'link').map(n => n.attrs.href),
     ...findAll(tree, n => n.attrs.src).map(n => n.attrs.src),
@@ -91,7 +91,7 @@ function styleChecks(file) {
     ...[...css.matchAll(/@import\s+["']([^"']+)/g)].map(m => m[1]),
   ];
   const external = [...new Set(refs.filter(u => /^(https?:)?\/\//.test(u) && !S.external_allow.some(a => u.startsWith(a))))];
-  check(`${name} · 외부 리소스`, !external.length, external.length ? `허용 밖 외부 주소: ${external.join(', ')}` : '');
+  if (S.external_allow) check(`${name} · 외부 리소스`, !external.length, external.length ? `허용 밖 외부 주소: ${external.join(', ')}` : '');
   if (S.no_named_colors) {
     const COLOR_PROP = /^(color|background(-color)?|border(-[a-z]+)*(-color)?|outline(-color)?|fill|stroke|box-shadow|text-shadow|text-decoration(-color)?|caret-color|column-rule(-color)?|accent-color)$/;
     const vals = rules.flatMap(r => r.decls.split(';').map(d => d.split(':')).filter(([k, v]) => v && COLOR_PROP.test(k.trim().toLowerCase())).map(([, v]) => v))
@@ -100,11 +100,11 @@ function styleChecks(file) {
     check(`${name} · 이름 색`, !named.length, named.length ? `이름 색 금지: ${named.join(', ')}` : '');
   }
 
-  check(`${name} · 터치 영역`, !small.length, small.length ? `${S.touch_min_px}px 미만: ${small.join(' / ')}` : '');
+  if (S.touch_min_px) check(`${name} · 터치 영역`, !small.length, small.length ? `${S.touch_min_px}px 미만: ${small.join(' / ')}` : '');
   const hasButtons = findAll(tree, n => n.tag === 'button' || hasClass(n, 'btn-primary')).length > 0;
   const tall = rules.some(r => /(^|[\s,>+~])button(?![\w-])|\.btn/.test(r.selector) &&
     [...r.decls.matchAll(/(min-height|height)\s*:\s*(\d+(?:\.\d+)?)px/g)].some(m => Number(m[2]) >= S.touch_min_px));
-  check(`${name} · 버튼 높이 규칙`, !hasButtons || tall, `버튼이 있으면 button/.btn 규칙에 min-height ${S.touch_min_px}px 이상 필요`);
+  if (S.touch_min_px) check(`${name} · 버튼 높이 규칙`, !hasButtons || tall, `버튼이 있으면 button/.btn 규칙에 min-height ${S.touch_min_px}px 이상 필요`);
   return { tree, rules };
 }
 
@@ -224,7 +224,7 @@ const gates = {
       const file = join(dir, 'p4-design', 'screens', R.screens[scr] + '.html');
       if (!existsSync(file)) { check(`${scr} · 화면`, false, `${rel(file)} 없음`); continue; }
       const parsed = styleChecks(file);
-      if (withService) serviceChecks(file, parsed, R.screens[scr]);
+      if (withService && R.service) serviceChecks(file, parsed, R.screens[scr]);   // 서비스 조건이 없는 앱은 건너뛴다
     }
     verdict();
   },

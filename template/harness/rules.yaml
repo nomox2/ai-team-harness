@@ -1,0 +1,65 @@
+# 하네스 판정 기준 — 게이트가 읽는 숫자는 이 파일에만 둔다 (SSOT)
+# 다른 문서는 숫자 대신 이 파일의 키 이름(예: uibowl.max_items_per_run)으로 가리킨다.
+# 출처 표시: [prd] docs/prd.md · [story-service] docs/story-service.md · [story-work] docs/story-work.md
+#           [design] docs/design.md · [R3]~[R8] 하네스 인터뷰 라운드 결정 · (제안) AI가 정한 값, 대표 확인 전 · (대표 확정) 대표가 확인한 값
+
+screens:
+  # [prd] 4. 만들 화면 — 화면 이름 → 파일 이름. 사무실 앱의 "새 실행" 화면 버튼이 이 이름들을 PRD와 맞춰 보여 준다.
+  # 예)
+  #   홈: home
+  #   기록하기: record
+  # 새 앱은 여기에 한 줄씩 채운다. 비어 있으면 "아직 미정" 실행(P1 리서치)만 할 수 있다.
+
+explore:
+  # [대표 2026-10-24] 화면을 아직 정하지 않은 실행 — P1 리서치만 하고 끝낸다 (slug = 날짜-explore)
+  screen: 아직 미정
+  slug: explore
+  gates: [p1]
+
+gates:
+  order: [p1, p2, p3, approval, p4, p5]
+  return_to:
+    # [R3]
+    p1: p1
+    p2: p1
+    p3: p3
+    approval: p3
+    p4: p4
+    p5: p4
+  max_failures: 3  # [R5] 같은 게이트에서 이 횟수만큼 실패하면 차단
+
+uibowl:
+  # [story-work 1] 레퍼런스 도구: 유아이볼(실제 앱 화면 DB, MCP). 무료 — 안 쓰는 실행도 있어서 on/off는 두지 않는다.
+  max_items_per_run: 20  # (제안) references/auto/ 파일 최대 수
+  url_prefix: "https://uibowl.io"  # (제안) auto/*.md의 url은 유아이볼 화면 주소여야 함 — 첫 실행 뒤 실제 주소에 맞춰 조정
+  auto_fields: [url, app, screen]  # (제안) auto/*.md에 있어야 하는 줄 (예: "app: 토스")
+
+p1:
+  min_references: 4         # [대표 2026-10-24] manual + auto 합계 (처음 10 → 첫 실행에서 4로 낮춤)
+  min_reflection_points: 3  # [R5] (대표 확정) analysis.md "## 반영할 점" 항목 수
+  min_evidence_per_point: 1 # [R5] 항목마다 references/ 파일 경로 수
+
+p2:
+  min_elements_per_screen: 3  # (대표 확정) screens.md 화면마다 "- " 요소 줄 수
+
+p3:
+  key_screens_min: 2  # [story-work] 4
+  key_screens_max: 3  # [story-work] 4
+
+# 아래 frame · style · service는 design.md와 story-service.md가 확정되면 채운다.
+# 비어 있는 항목은 verify.mjs가 건너뛰고, 값이 있는 항목만 판정한다.
+# 예)
+#   frame:
+#     attr: 390x844          # 기준 화면 — <html data-frame="...">에 이 값
+#   style:
+#     colors: ["#ffffff", "#171717"]   # 이 밖의 hex 색은 실패
+#     radius_px: [0, 8, 12, 9999]
+#     fonts: ["Pretendard", "sans-serif"]
+#     rgba_only_black: true
+#     no_named_colors: true
+#     max_primary_buttons: 1
+#     touch_min_px: 44
+#     allow_script: false
+#     external_allow: []
+#   service:                   # story-service.md의 "어기면 안 되는 것" — 지금 verify.mjs가 읽는 항목은
+#     record_requires: [...]   # 가계부 앱 기준이다. 서비스에 맞는 조건은 serviceChecks()를 고쳐 추가한다.
