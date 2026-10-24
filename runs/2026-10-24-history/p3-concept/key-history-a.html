@@ -1,0 +1,120 @@
+<!-- 컨셉: A "한 줄 정석" — 제목과 월 선택, 월 합계, 칩을 위에 차례로 쌓고 날짜 머리글로 묶은 평평한 목록. 흰 바탕과 얇은 구분선만 써서 기준 문서(design.md)에 가장 충실하게, 기록을 빨리 훑는 데 집중한 안. -->
+<!DOCTYPE html>
+<html lang="ko" data-frame="390x844">
+<head>
+<meta charset="utf-8">
+<title>내역 - 컨셉 A</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #efefef; font-family: Pretendard, Inter, -apple-system, 'Apple SD Gothic Neo', sans-serif; color: #171717; }
+.screen { position: relative; width: 390px; height: 844px; margin: 0 auto; background: #ffffff; overflow: hidden; }
+.content { padding: 16px 16px 0 16px; }
+.amount { font-family: Inter, Pretendard, sans-serif; font-variant-numeric: tabular-nums; }
+a, button, .tab, .chip { min-height: 44px; }
+a { color: inherit; text-decoration: none; }
+button { font-family: Pretendard, Inter, -apple-system, 'Apple SD Gothic Neo', sans-serif; }
+
+.top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.top h1 { font-size: 28px; font-weight: 500; line-height: 1.25; letter-spacing: -0.42px; }
+.month { display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px; border: 1px solid #c7c7c7; border-radius: 6px; background: #ffffff; color: #171717; font-size: 14px; font-weight: 500; }
+
+.total { margin-top: 12px; }
+.total .label { display: block; font-size: 13px; line-height: 1.45; color: #707070; }
+.total .amount { display: block; margin-top: 2px; font-size: 28px; font-weight: 500; line-height: 1.25; letter-spacing: -0.42px; color: #054cff; }
+
+.chips { display: flex; gap: 8px; margin-top: 16px; }
+.chip { display: flex; align-items: center; justify-content: center; padding: 0 16px; border: 1px solid #dfdfdf; border-radius: 8px; background: #ffffff; color: #707070; font-size: 14px; font-weight: 500; }
+.chip.current { border-color: #171717; background: #171717; color: #ffffff; }
+
+.day-head { display: flex; justify-content: space-between; margin-top: 16px; padding: 8px 0 4px 0; font-size: 13px; line-height: 1.45; color: #707070; }
+.day-head .day { color: #171717; font-weight: 700; }
+.day-head .sum { font-family: Inter, Pretendard, sans-serif; font-variant-numeric: tabular-nums; }
+.records { list-style: none; }
+.record-item { display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #ededed; }
+.record-item:last-child { border-bottom: 0; }
+.icon { display: flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 9999px; background: #fafafa; font-size: 14px; font-weight: 500; color: #212121; }
+.info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.category { font-size: 16px; line-height: 1.5; color: #171717; }
+.sub { font-size: 13px; line-height: 1.45; color: #707070; }
+.memo, .date { font-size: 13px; line-height: 1.45; color: #707070; }
+.record-item .amount { font-size: 16px; font-weight: 700; line-height: 1.5; }
+.record-item[data-kind="expense"] .amount { color: #054cff; }
+.record-item[data-kind="income"] .amount { color: #ff2201; }
+
+.month-head { margin-top: 24px; padding: 8px 0; border-top: 1px solid #dfdfdf; font-size: 13px; font-weight: 700; line-height: 1.45; color: #707070; }
+
+.btn-primary { position: absolute; right: 16px; bottom: 80px; display: flex; align-items: center; justify-content: center; width: 56px; min-height: 56px; height: 56px; border: 0; border-radius: 9999px; background: #3ecf8e; color: #171717; font-size: 28px; font-weight: 500; line-height: 1; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+.tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; display: flex; align-items: center; background: #ffffff; border-top: 1px solid #ededed; }
+.tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #9a9a9a; }
+.tab.current { color: #171717; font-weight: 700; }
+.tab.rec { flex: none; width: 52px; margin: 0 4px; border: 1px solid #171717; border-radius: 8px; color: #171717; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="content">
+    <div class="top">
+      <h1>내역</h1>
+      <button class="month">2026년 10월 ▾</button>
+    </div>
+
+    <div class="total">
+      <span class="label">10월에 쓴 돈</span>
+      <span class="amount">−1,284,500원</span>
+    </div>
+
+    <div class="chips">
+      <a class="chip current" href="#">전체</a>
+      <a class="chip" href="#">수입</a>
+      <a class="chip" href="#">지출</a>
+    </div>
+
+    <div class="day-head"><span class="day">10월 25일 (일)</span><span class="sum">수입 +2,800,000원</span></div>
+    <ul class="records">
+      <li class="record-item" data-kind="income">
+        <span class="icon">급</span>
+        <span class="info"><span class="category">월급</span><span class="sub"><span class="memo">10월 월급</span> · <span class="date">10월 25일</span></span></span>
+        <span class="amount">+2,800,000원</span>
+      </li>
+    </ul>
+
+    <div class="day-head"><span class="day">10월 24일 (토)</span><span class="sum">수입 +0원 · 지출 −18,500원</span></div>
+    <ul class="records">
+      <li class="record-item" data-kind="expense">
+        <span class="icon">식</span>
+        <span class="info"><span class="category">식비</span><span class="sub"><span class="memo">점심 김치찌개</span> · <span class="date">10월 24일</span></span></span>
+        <span class="amount">−9,000원</span>
+      </li>
+      <li class="record-item" data-kind="expense">
+        <span class="icon">카</span>
+        <span class="info"><span class="category">카페·간식</span><span class="sub"><span class="memo">아메리카노</span> · <span class="date">10월 24일</span></span></span>
+        <span class="amount">−4,500원</span>
+      </li>
+    </ul>
+
+    <div class="day-head"><span class="day">10월 23일 (금)</span><span class="sum">수입 +0원 · 지출 −12,000원</span></div>
+    <ul class="records">
+      <li class="record-item" data-kind="expense">
+        <span class="icon">교</span>
+        <span class="info"><span class="category">교통</span><span class="sub"><span class="memo">교통카드 충전</span> · <span class="date">10월 23일</span></span></span>
+        <span class="amount">−12,000원</span>
+      </li>
+    </ul>
+
+    <div class="month-head">9월</div>
+  </div>
+
+  <button class="btn-primary" data-nav="record" aria-label="기록하기">+</button>
+
+  <nav class="tabbar">
+    <a class="tab" href="#">홈</a>
+    <a class="tab current" href="#">내역</a>
+    <a class="tab rec" data-nav="record" href="#">기록</a>
+    <a class="tab" href="#">통계</a>
+    <a class="tab" href="#">예산·설정</a>
+  </nav>
+</div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+# 하네스 판정 기준 — 게이트가 읽는 숫자는 이 파일에만 둔다 (SSOT)
+# 다른 문서는 숫자 대신 이 파일의 키 이름(예: uibowl.max_items_per_run)으로 가리킨다.
+# 출처 표시: [prd] docs/prd.md · [story-service] docs/story-service.md · [story-work] docs/story-work.md
+#           [design] docs/design.md · [R3]~[R8] 하네스 인터뷰 라운드 결정 · (제안) AI가 정한 값, 대표 확인 전 · (대표 확정) 대표가 확인한 값
+
+screens:
+  # [prd] 4. 만들 화면 — 화면 이름 → 파일 이름
+  홈: home
+  기록하기: record
+  내역: history
+  통계: stats
+  예산·설정: budget
+
+explore:
+  # [대표 2026-10-24] 화면을 아직 정하지 않은 실행 — P1 리서치만 하고 끝낸다 (slug = 날짜-explore)
+  screen: 아직 미정
+  slug: explore
+  gates: [p1]
+
+gates:
+  order: [p1, p2, p3, approval, p4, p5]
+  return_to:
+    # [R3]
+    p1: p1
+    p2: p1
+    p3: p3
+    approval: p3
+    p4: p4
+    p5: p4
+  max_failures: 3  # [R5] 같은 게이트에서 이 횟수만큼 실패하면 차단
+
+uibowl:
+  # [story-work 1] 레퍼런스 도구: 유아이볼(실제 앱 화면 DB, MCP). 무료 — 안 쓰는 실행도 있어서 on/off는 두지 않는다.
+  max_items_per_run: 20  # (제안) references/auto/ 파일 최대 수
+  url_prefix: "https://uibowl.io"  # (제안) auto/*.md의 url은 유아이볼 화면 주소여야 함 — 첫 실행 뒤 실제 주소에 맞춰 조정
+  auto_fields: [url, app, screen]  # (제안) auto/*.md에 있어야 하는 줄 (예: "app: 토스")
+
+p1:
+  min_references: 4         # [대표 2026-10-24] manual + auto 합계 (처음 10 → 첫 실행에서 4로 낮춤)
+  min_reflection_points: 3  # [R5] (대표 확정) analysis.md "## 반영할 점" 항목 수
+  min_evidence_per_point: 1 # [R5] 항목마다 references/ 파일 경로 수
+
+p2:
+  min_elements_per_screen: 3  # (대표 확정) screens.md 화면마다 "- " 요소 줄 수
+
+p3:
+  key_screens_min: 2  # [story-work] 4
+  key_screens_max: 3  # [story-work] 4
+
+frame:
+  attr: 390x844  # [design] 우리 서비스 보완 · 기준 화면 — <html data-frame="...">에 이 값
+
+style:
+  # [design] colors — 이 밖의 hex 색은 실패
+  colors: [
+    "#3ecf8e", "#24b47e", "#4ade80",
+    "#171717", "#212121", "#707070", "#9a9a9a", "#b2b2b2",
+    "#ffffff", "#fafafa", "#1c1c1c", "#202020",
+    "#dfdfdf", "#c7c7c7", "#ededed", "#efefef", "#d4d4d4",
+    "#6b01c2", "#644fc1", "#eddbf9", "#ffdb13", "#ff2201", "#c7007e", "#054cff", "#e2005a"
+  ]
+  rgba_only_black: true  # [design] Elevation — rgba()는 그림자용 검정(0,0,0)만
+  no_named_colors: true  # [R8] red · white 같은 이름 색 금지 (transparent · currentColor는 허용)
+  radius_px: [0, 4, 6, 8, 12, 16, 9999]  # [design] rounded
+  fonts: [
+    "Pretendard", "Inter", "-apple-system", "Apple SD Gothic Neo", "sans-serif",
+    "ui-monospace", "Menlo", "Monaco", "Consolas", "Liberation Mono", "monospace"
+  ]  # [design] 우리 서비스 보완 · 폰트 + code
+  green_colors: ["#3ecf8e", "#24b47e"]  # [design] 채움 버튼(.btn-primary)에만
+  max_primary_buttons: 1                # [design] 화면당 채움 버튼 수
+  touch_min_px: 44                      # [design] 우리 서비스 보완 · 터치 영역
+  allow_script: false                   # [R8] <script> 금지
+  external_allow: ["https://cdn.jsdelivr.net/gh/orioncactus/pretendard"]  # [R8] 허용 외부 리소스 (앞부분 일치)
+
+service:
+  # [story-service] 어기면 안 되는 것
+  record_requires: [amount, category, date]  # 1. .record-item마다 이 클래스의 요소가 있고 글자가 있어야 함
+  budget_left:                    # 2. 이 화면 파일에는 .budget-left가 있고 그 안 .amount에 숫자가 있어야 함
+    screens: [home]
+  # 일반 규칙 [prd] 5
+  record_nav:                     # 어느 화면에서든 기록하기로 한 번에: [data-nav="record"] 요소 (기록하기 화면 자신은 제외)
+    attr: record
+    exempt_screens: [record]
+  kinds:                          # .record-item data-kind → .amount 글자 맨 앞 기호 (색만으로 구분하지 않음)
+    expense: ["−", "-"]
+    income: ["+"]

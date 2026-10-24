@@ -1,0 +1,13 @@
+{ "slug": "2026-10-24-home", "screens": ["홈"], "phase": "done",
+  "gates": { "p1": { "result": "pass", "at": "2026-10-24" }, "p2": { "result": "pass", "at": "2026-10-24" }, "p3": { "result": "pass", "at": "2026-10-24" }, "approval": { "result": "pass", "at": "2026-10-24" }, "p4": { "result": "pass", "at": "2026-10-24" }, "p5": { "result": "pass", "at": "2026-10-24" } }, "failures": { "p3": 1 },
+  "log": [
+    {"at":"2026-10-24","who":"main","text":"실행 시작 (홈). explore 레퍼런스 5개 재사용, 주소 &amp;→& 수정, 유아이볼 검색 안 함"},
+    {"at":"2026-10-24","who":"tes","text":"P1 통과 (manual 0 + auto 5, 반영할 점 8)"},
+    {"at":"2026-10-24","who":"tes","text":"P2 통과 (홈 요소 12개)"},
+    {"at":"2026-10-24","who":"tes","text":"P3 실패 1회: key-home-a/b/c 폰트 — 허용 밖 폰트 inherit (button { font-family: inherit })"},
+    {"at":"2026-10-24","who":"tes","text":"P3 통과 (key-home-a/b/c, 재작업 1회)"},
+    {"at":"2026-10-24","who":"tes","text":"승인 대기 (wait) — 대표 승인·반려 기다림"},
+    {"at":"2026-10-24","who":"tes","text":"승인 통과 (approved, 해시 일치)"},
+    {"at":"2026-10-24","who":"tes","text":"P4 통과 (13개 check, A안 기준 home.html)"},
+    {"at":"2026-10-24","who":"tes","text":"P5 통과 (28개 check) — 완료"}
+  ] }

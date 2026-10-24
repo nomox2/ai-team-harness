@@ -1,0 +1,164 @@
+<!-- 컨셉 B: 즐겨찾기 먼저 + 날짜 시트. 반복되는 지출은 맨 위 카드 한 번 탭으로 끝내고, 직접 입력은 흰 카드 묶음에서 이어 간다. 이 시안은 날짜 입력창을 눌러 "날짜 선택" 시트가 올라온 상태를 보여 준다. -->
+<!DOCTYPE html>
+<html lang="ko" data-frame="390x844">
+<head>
+<meta charset="utf-8">
+<title>기록하기 - 컨셉 B</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #ededed; font-family: Pretendard, Inter, -apple-system, 'Apple SD Gothic Neo', sans-serif; color: #171717; }
+  .frame { position: relative; width: 390px; height: 844px; margin: 0 auto; background: #fafafa; overflow: hidden; }
+  .scroll { height: 844px; overflow-y: auto; padding: 0 16px 112px 16px; }
+  button, input { font-family: Pretendard, Inter, -apple-system, 'Apple SD Gothic Neo', sans-serif; min-height: 44px; font-size: 16px; color: #171717; }
+  button { background: transparent; border: 0; cursor: pointer; }
+  .num { font-family: Inter, Pretendard, -apple-system, 'Apple SD Gothic Neo', sans-serif; font-variant-numeric: tabular-nums; }
+
+  .top { position: relative; display: flex; align-items: center; justify-content: center; height: 56px; }
+  .top h1 { font-size: 18px; font-weight: 500; line-height: 1.4; }
+  .close { position: absolute; left: -8px; top: 6px; width: 44px; height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+
+  .label { display: block; font-size: 13px; line-height: 1.45; color: #707070; margin: 20px 0 8px; }
+  .req { color: #ff2201; margin-left: 2px; }
+
+  .fav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .chip { min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 1px solid #dfdfdf; border-radius: 12px; background: #ffffff; font-size: 14px; font-weight: 500; line-height: 1.4; }
+  .chip .num { font-size: 13px; font-weight: 400; color: #707070; }
+
+  .toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tab { min-height: 44px; border: 1px solid #dfdfdf; border-radius: 8px; background: #ffffff; font-size: 16px; font-weight: 500; color: #707070; }
+  .tab.on { border-color: #171717; background: #efefef; color: #171717; }
+
+  .card { background: #ffffff; border: 1px solid #dfdfdf; border-radius: 12px; padding: 16px; }
+  .card .label { margin-top: 0; }
+  .amount-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .amount-input { flex: 1; min-width: 0; border: 0; border-radius: 0; background: #ffffff; font-family: Inter, Pretendard, -apple-system, 'Apple SD Gothic Neo', sans-serif; font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 500; line-height: 1.25; letter-spacing: -0.42px; min-height: 48px; outline: 0; }
+  .amount-input::placeholder { color: #b2b2b2; }
+  .sign-preview { font-size: 16px; font-weight: 500; color: #054cff; white-space: nowrap; }
+
+  .cats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .cat { min-height: 64px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 1px solid #ededed; border-radius: 8px; background: #ffffff; font-size: 12px; font-weight: 500; line-height: 1.45; }
+  .cat.on { border-color: #171717; background: #efefef; }
+  .ico { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 9999px; background: #fafafa; flex: 0 0 36px; }
+  .cat .ico { width: 28px; height: 28px; flex: 0 0 28px; }
+  .cat.on .ico { background: #ffffff; }
+  .ico svg { width: 18px; height: 18px; stroke: #171717; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  .date-field { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid #dfdfdf; border-radius: 6px; background: #ffffff; font-size: 16px; text-align: left; }
+  .date-field svg { width: 20px; height: 20px; stroke: #707070; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  .memo { width: 100%; padding: 8px 12px; border: 1px solid #dfdfdf; border-radius: 6px; background: #ffffff; min-height: 48px; }
+  .memo::placeholder { color: #b2b2b2; }
+  .count { text-align: right; font-size: 12px; line-height: 1.45; color: #9a9a9a; margin-top: 4px; }
+
+  .list { list-style: none; border: 1px solid #dfdfdf; border-radius: 12px; overflow: hidden; background: #ffffff; }
+  .record-item { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; background: #ffffff; }
+  .record-item .body { flex: 1; display: flex; flex-direction: column; }
+  .record-item .category { font-size: 16px; line-height: 1.5; color: #171717; }
+  .record-item .date { font-size: 13px; line-height: 1.45; color: #707070; }
+  .record-item .amount { font-family: Inter, Pretendard, -apple-system, 'Apple SD Gothic Neo', sans-serif; font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 700; }
+  .record-item[data-kind="expense"] .amount { color: #054cff; }
+  .record-item[data-kind="income"] .amount { color: #ff2201; }
+
+  .savebar { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 24px 16px; background: #ffffff; border-top: 1px solid #ededed; }
+  .btn-primary { display: block; width: 100%; min-height: 52px; border-radius: 6px; background: #3ecf8e; color: #171717; font-size: 16px; font-weight: 500; }
+
+  .dim { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: rgba(0,0,0,0.4); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #ffffff; border-radius: 16px 16px 0 0; padding: 8px 16px 32px 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.12); }
+  .sheet-head { position: relative; display: flex; align-items: center; justify-content: center; height: 52px; }
+  .sheet-head h2 { font-size: 18px; font-weight: 500; line-height: 1.4; }
+  .sheet-close { position: absolute; right: -8px; top: 4px; width: 44px; height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  .opts { list-style: none; }
+  .opt { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; padding: 0 4px; border-bottom: 1px solid #ededed; font-size: 16px; text-align: left; }
+  .opts li:last-child .opt { border-bottom: 0; }
+  .radio { width: 20px; height: 20px; border: 1.5px solid #c7c7c7; border-radius: 9999px; display: flex; align-items: center; justify-content: center; }
+  .opt.on .radio { border-color: #171717; }
+  .opt.on .radio::after { content: ""; width: 10px; height: 10px; border-radius: 9999px; background: #171717; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="scroll">
+    <header class="top">
+      <button class="close" type="button" aria-label="닫기">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#171717" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l12 12M16 4L4 16"/></svg>
+      </button>
+      <h1>기록하기</h1>
+    </header>
+
+    <span class="label" style="margin-top:4px;">즐겨찾기</span>
+    <div class="fav">
+      <button class="chip" type="button">커피<span class="num">4,500원</span></button>
+      <button class="chip" type="button">점심<span class="num">9,000원</span></button>
+      <button class="chip" type="button">교통비<span class="num">1,550원</span></button>
+    </div>
+
+    <span class="label">직접 입력</span>
+    <div class="toggle" role="tablist">
+      <button class="tab on" type="button" data-type="expense">지출</button>
+      <button class="tab" type="button" data-type="income">수입</button>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <label class="label" for="amount">금액<span class="req">*</span></label>
+      <div class="amount-row">
+        <input id="amount" class="amount-input" type="text" inputmode="numeric" value="12,000원" placeholder="금액을 입력하세요">
+        <span class="sign-preview num">−12,000원</span>
+      </div>
+    </div>
+
+    <span class="label">카테고리<span class="req">*</span></span>
+    <div class="cats">
+      <button class="cat on" type="button"><span class="ico"><svg viewBox="0 0 20 20"><path d="M5 3v5a2 2 0 0 0 2 2v7M9 3v5M7 3v5M14 17V3c-2 1-3 3-3 6h3"/></svg></span>식비</button>
+      <button class="cat" type="button"><span class="ico"><svg viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="9" rx="2"/><path d="M6 14v2M14 14v2M3 10h14"/></svg></span>교통</button>
+      <button class="cat" type="button"><span class="ico"><svg viewBox="0 0 20 20"><path d="M4 7h12l-1 10H5L4 7zM7 7V5a3 3 0 0 1 6 0v2"/></svg></span>쇼핑</button>
+      <button class="cat" type="button"><span class="ico"><svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M8 8l4 2-4 2V8z"/></svg></span>문화</button>
+      <button class="cat" type="button"><span class="ico"><svg viewBox="0 0 20 20"><path d="M3 10l7-6 7 6M5 9v8h10V9"/></svg></span>주거</button>
+      <button class="cat" type="button"><span class="ico"><svg viewBox="0 0 20 20"><circle cx="5" cy="10" r="1.2"/><circle cx="10" cy="10" r="1.2"/><circle cx="15" cy="10" r="1.2"/></svg></span>기타</button>
+    </div>
+
+    <span class="label">날짜</span>
+    <button class="date-field" type="button">
+      <span class="num">2026.10.25 (일)</span>
+      <svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 3v3M13 3v3"/></svg>
+    </button>
+
+    <label class="label" for="memo">메모 (선택)</label>
+    <input id="memo" class="memo" type="text" maxlength="20" placeholder="예: 팀 회식">
+    <div class="count num">0/20자</div>
+
+    <span class="label">저장 전 미리보기</span>
+    <ul class="list">
+      <li class="record-item" data-kind="expense">
+        <span class="ico"><svg viewBox="0 0 20 20"><path d="M5 3v5a2 2 0 0 0 2 2v7M9 3v5M7 3v5M14 17V3c-2 1-3 3-3 6h3"/></svg></span>
+        <span class="body">
+          <span class="category">식비</span>
+          <span class="date num">10.25</span>
+        </span>
+        <span class="amount">−12,000원</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="savebar">
+    <button class="btn-primary" type="button">저장</button>
+  </div>
+
+  <div class="dim"></div>
+  <section class="sheet" aria-label="날짜 선택">
+    <div class="sheet-head">
+      <h2>날짜 선택</h2>
+      <button class="sheet-close" type="button" aria-label="닫기">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#171717" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l12 12M16 4L4 16"/></svg>
+      </button>
+    </div>
+    <ul class="opts">
+      <li><button class="opt on" type="button">오늘<span class="radio"></span></button></li>
+      <li><button class="opt" type="button">어제<span class="radio"></span></button></li>
+      <li><button class="opt" type="button">그저께<span class="radio"></span></button></li>
+      <li><button class="opt" type="button">직접 선택<span class="radio"></span></button></li>
+    </ul>
+  </section>
+</div>
+</body>
+</html>

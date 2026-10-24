@@ -1,0 +1,13 @@
+{ "slug": "2026-10-24-budget", "screens": ["예산·설정"], "phase": "done",
+  "gates": { "p1": { "result": "pass", "at": "2026-10-24" }, "p2": { "result": "pass", "at": "2026-10-24" }, "p3": { "result": "pass", "at": "2026-10-24" }, "approval": { "result": "pass", "at": "2026-10-24" }, "p4": { "result": "pass", "at": "2026-10-24" }, "p5": { "result": "pass", "at": "2026-10-24" } }, "failures": { "p2": 1 },
+  "log": [
+    {"at":"2026-10-24","who":"main","text":"실행 시작 (예산·설정). 대표 메모: 예산 페이지 1장 + 설정 페이지 1장, 총 2장. 홈 실행 레퍼런스 5개 재사용"},
+    {"at":"2026-10-24","who":"tes","text":"P1 통과 (manual 0 + auto 5, 반영할 점 11)"},
+    {"at":"2026-10-24","who":"tes","text":"P2 실패 1회: 화면 이름 '예산'·'설정'이 PRD 표기('예산·설정')와 다름, '## 예산·설정' 섹션 없음. 하루에게 표기 수정 요청"},
+    {"at":"2026-10-24","who":"tes","text":"P2 통과 (요소 18개, 재작업 1회)"},
+    {"at":"2026-10-24","who":"tes","text":"P3 통과 (key-budget, key-settings, 26개 check)"},
+    {"at":"2026-10-24","who":"tes","text":"승인 대기 (wait) — 대표 승인·반려 기다림"},
+    {"at":"2026-10-24","who":"tes","text":"승인 통과 (approved, 해시 일치)"},
+    {"at":"2026-10-24","who":"tes","text":"P4 통과 (budget.html 기준 13개 check, settings.html은 verify 대상 아님)"},
+    {"at":"2026-10-24","who":"tes","text":"P5 통과 (14개 check) — 완료"}
+  ] }

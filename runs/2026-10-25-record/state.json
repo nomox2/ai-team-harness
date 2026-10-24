@@ -1,0 +1,15 @@
+{ "slug": "2026-10-25-record", "screens": ["기록하기"], "phase": "done",
+  "gates": { "p1": { "result": "pass", "at": "2026-10-25" }, "p2": { "result": "pass", "at": "2026-10-25" }, "p3": { "result": "pass", "at": "2026-10-25" }, "approval": { "result": "pass", "at": "2026-10-25" }, "p4": { "result": "pass", "at": "2026-10-25" }, "p5": { "result": "pass", "at": "2026-10-25" } }, "failures": {},
+  "log": [
+    { "at": "2026-10-25", "who": "main", "text": "실행 시작: 기록하기, manual 레퍼런스 없음" },
+    { "at": "2026-10-25", "who": "main", "text": "P1 저장 시 에이전트 답의 &amp; &gt;를 & >로 되돌림 (허용 예외)" },
+    { "at": "2026-10-25", "who": "tes", "text": "P1 통과 (manual 0 + auto 6, 반영할 점 8)" },
+    { "at": "2026-10-25", "who": "tes", "text": "P2 통과 (기록하기 요소 11개)" },
+    { "at": "2026-10-25", "who": "main", "text": "P3 저장 시 에이전트 답의 &lt; &gt;를 < >로 되돌림 (허용 예외)" },
+    { "at": "2026-10-25", "who": "tes", "text": "P3 통과 (key-record-a/b, 26개 check)" },
+    { "at": "2026-10-25", "who": "tes", "text": "승인 대기 (wait) — 대표 승인·반려 기다림" },
+    { "at": "2026-10-25", "who": "tes", "text": "승인 통과 (status: approved, 승인 뒤 변경 없음)" },
+    { "at": "2026-10-25", "who": "main", "text": "P4 저장 시 에이전트 답의 &lt; &gt;를 < >로 되돌림 (허용 예외)" },
+    { "at": "2026-10-25", "who": "tes", "text": "P4 통과 (13개 check)" },
+    { "at": "2026-10-25", "who": "tes", "text": "P5 통과 (16개 check) — 실행 완료" }
+  ] }
