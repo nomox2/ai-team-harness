@@ -30,13 +30,17 @@ if (!slug || !R.gates.order.includes(gate)) {
 }
 if (!existsSync(join(dir, 'state.json'))) { check('state', false, `${rel(dir)}/state.json 이 없음`); finish('error'); }
 const state = readJson(join(dir, 'state.json'));
-const chosen = state.screens || [];
-// "아직 미정" 실행: 화면 없이 리서치만 한다 (rules.yaml explore)
-const explore = chosen.includes(R.explore.screen);
-if (explore && chosen.length > 1) { check('state.screens', false, `"${R.explore.screen}"은 다른 화면과 함께 고를 수 없음`); finish('error'); }
-if (explore && !R.explore.gates.includes(gate)) { check('미정 실행', false, `"${R.explore.screen}" 실행은 ${R.explore.gates.join(', ')}만 판정함 — 화면을 정한 뒤 새 실행으로 이어가야 함`); finish('error'); }
-const bad = chosen.filter(s => !(s in R.screens) && !(explore && s === R.explore.screen));
-if (!chosen.length || bad.length) { check('state.screens', false, `고른 화면이 비었거나 PRD에 없는 화면: ${bad.join(', ')}`); finish('error'); }
+// 만들 화면은 하네스가 정한다: P2에서 하루가 screens.md에 "## 화면 이름" 섹션과 "파일: <영문 이름>" 줄로 적는다
+const KEY = /^[a-z0-9][a-z0-9-]*$/;
+function readSpec() {
+  const file = join(dir, 'p2-design-spec', 'screens.md');
+  if (!existsSync(file)) return null;
+  return readFileSync(file, 'utf8').split(/^## /m).slice(1).map(s => {
+    const [head, ...body] = s.split('\n');
+    return { name: head.trim(), key: body.join('\n').match(/^파일:\s*(\S+)\s*$/m)?.[1] || null,
+      elements: body.filter(l => /^\s*-\s+\S/.test(l)).length };
+  }).filter(s => s.key || s.elements);   // "## 화면을 이렇게 정한 이유"처럼 파일·요소 줄이 없는 섹션은 화면이 아니다
+}
 
 /* ---------- 디자인 규칙 (design.md → rules.yaml.style) ---------- */
 const norm = h => { h = h.toLowerCase(); return h.length === 4 ? '#' + [...h.slice(1)].map(c => c + c).join('') : h; };
@@ -190,18 +194,18 @@ const gates = {
     verdict();
   },
   p2() {
-    const file = join(dir, 'p2-design-spec', 'screens.md');
-    if (!existsSync(file)) { check('screens.md', false, '파일 없음'); return verdict(); }
-    const secs = readFileSync(file, 'utf8').split(/^## /m).slice(1).map(s => {
-      const [head, ...body] = s.split('\n');
-      return { name: head.trim(), elements: body.filter(l => /^\s*-\s+\S/.test(l)).length };
-    });
-    const unknown = secs.filter(s => !(s.name in R.screens)).map(s => s.name);
-    check('화면 이름', !unknown.length, unknown.length ? `PRD에 없는 화면: ${unknown.join(', ')}` : '');
-    for (const scr of chosen) {
-      const s = secs.find(x => x.name === scr);
-      check(`${scr} · 설계`, s && s.elements >= R.p2.min_elements_per_screen,
-        s ? `요소 ${s.elements}개 (최소 ${R.p2.min_elements_per_screen})` : '"## ' + scr + '" 섹션 없음');
+    const secs = readSpec();
+    if (!secs) { check('screens.md', false, '파일 없음'); return verdict(); }
+    check('화면 수', secs.length >= R.p2.min_screens && secs.length <= R.p2.max_screens,
+      `${secs.length}개 (${R.p2.min_screens}~${R.p2.max_screens})`);
+    const keys = secs.map(s => s.key).filter(Boolean);
+    const dup = keys.filter((k, i) => keys.indexOf(k) !== i);
+    check('파일 이름 겹침', !dup.length, dup.length ? `같은 파일 이름: ${[...new Set(dup)].join(', ')}` : '');
+    for (const s of secs) {
+      check(`${s.name} · 파일 이름`, s.key && KEY.test(s.key),
+        s.key ? `"${s.key}" — 영문 소문자·숫자·-만 쓴다` : '"파일: <영문 이름>" 줄 없음');
+      check(`${s.name} · 설계`, s.elements >= R.p2.min_elements_per_screen,
+        `요소 ${s.elements}개 (최소 ${R.p2.min_elements_per_screen})`);
     }
     verdict();
   },
@@ -220,11 +224,13 @@ const gates = {
     if (pre !== 'pass') { checks.length = 0; check('P3 승인', false, '승인이 없거나 무효 — P4를 판정할 수 없음'); finish('error'); }
     checks.length = 0;
     check('tokens.md', existsSync(join(dir, 'p4-design', 'tokens.md')), 'p4-design/tokens.md 필요');
-    for (const scr of chosen) {
-      const file = join(dir, 'p4-design', 'screens', R.screens[scr] + '.html');
+    const secs = readSpec();
+    if (!secs?.length) { check('screens.md', false, 'P2 설계(만들 화면 목록)가 없음'); finish('error'); }
+    for (const { name: scr, key } of secs) {
+      const file = join(dir, 'p4-design', 'screens', key + '.html');
       if (!existsSync(file)) { check(`${scr} · 화면`, false, `${rel(file)} 없음`); continue; }
       const parsed = styleChecks(file);
-      if (withService && R.service) serviceChecks(file, parsed, R.screens[scr]);   // 서비스 조건이 없는 앱은 건너뛴다
+      if (withService && R.service) serviceChecks(file, parsed, key);   // 서비스 조건이 없는 앱은 건너뛴다
     }
     verdict();
   },

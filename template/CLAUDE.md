@@ -1,21 +1,21 @@
 # (가칭) 디자인 하네스
 
-이 하네스는 이 앱(`docs/prd.md`)의 화면을, 실행할 때마다 고른 화면 단위로
+이 하네스는 이 앱(`docs/prd.md`)의 화면을, 실행할 때마다
 리서치 → 설계 → 시안 → 판정까지 일관된 기준으로 만든다.
 이 규칙은 하네스를 실행할 때(`/run-harness`, "하네스 돌려줘", "하네스 이어서 해줘")만 적용한다.
 office.html 등 다른 작업에는 적용하지 않는다. 실행 절차는 `.claude/skills/run-harness/SKILL.md`를 따른다.
 
 ## 목적
-- 매번 달라지는 것: 이번에 만들 화면 (`docs/prd.md` "4. 만들 화면" 중 선택, 또는 "아직 미정" = P1 리서치만)
+- 만들 화면: 대표가 고르지 않는다. 하루가 P2에서 PRD·리서치·대표 메모를 보고 정한다 (`docs/prd.md` "4. 만들 화면"은 있으면 출발점). 대표는 P3 승인 때 화면 구성도 함께 확인한다.
 - 고정된 것: `docs/prd.md`(서비스), `docs/design.md`(디자인 규칙), `docs/story-service.md`(판정 기준), `docs/story-work.md`(작업 흐름)
 - 사용자: 대표 1명. Claude Code에서 실행하고 승인도 대표가 한다. 나중에 office.html에 연결한다.
-- 완료 기준: 고른 화면이 기준 화면(rules.yaml `frame.attr`) HTML로 만들어지고, design.md 규칙과 PRD 5번의 "어기면 안 되는 것"을 `verify.mjs`가 모두 통과로 판정하고, 대표가 컨셉을 승인한 상태. (규칙이 아직 비어 있는 항목은 판정하지 않는다 — 아래 "새 앱 준비" 참고)
+- 완료 기준: 하루가 정한 화면이 기준 화면(rules.yaml `frame.attr`) HTML로 만들어지고, design.md 규칙과 PRD 5번의 "어기면 안 되는 것"을 `verify.mjs`가 모두 통과로 판정하고, 대표가 컨셉을 승인한 상태. (규칙이 아직 비어 있는 항목은 판정하지 않는다 — 아래 "새 앱 준비" 참고)
 
 ## 파이프라인
 | 단계 | 담당 | 입력 | 출력 |
 |---|---|---|---|
-| P1 리서치 | 모아 (`moa`) | prd.md, 고른 화면 | `p1-research/references/{manual,auto}/`, `p1-research/analysis.md` |
-| P2 설계 | 하루 (`haru`) | analysis.md, prd.md, story-service.md | `p2-design-spec/screens.md` |
+| P1 리서치 | 모아 (`moa`) | prd.md, 대표 메모 | `p1-research/references/{manual,auto}/`, `p1-research/analysis.md` |
+| P2 설계 | 하루 (`haru`) | analysis.md, prd.md, story-service.md | 만들 화면 결정 + `p2-design-spec/screens.md` |
 | P3 컨셉 시안 | 소라 (`sora`) | screens.md, design.md | `p3-concept/key-*.html` (`p3.key_screens_min`~`max`개) |
 | ⛳ P3 승인 | 대표 | key-*.html | `p3-concept/approval.md` |
 | P4 디자인 | 코다 (`koda`) | 승인된 키스크린, design.md | `p4-design/tokens.md`, `p4-design/screens/*.html` |
@@ -24,8 +24,8 @@ office.html 등 다른 작업에는 적용하지 않는다. 실행 절차는 `.c
 되돌아가기: P2 레퍼런스 부족 → P1 / 승인 반려 → P3 (구성 문제면 P2) / P5 실패 → P4
 
 ## 산출물과 상태
-- 실행마다 `runs/<slug>/` 폴더를 만든다. slug = 날짜-화면 (예: `2026-10-24-home-trend`)
-- 진행 상태는 `runs/<slug>/state.json`에 기록한다: 고른 화면, 현재 단계, 게이트별 결과, 실패 횟수
+- 실행마다 `runs/<slug>/` 폴더를 만든다. slug = 날짜-run (예: `2026-10-26-run`, 같은 날 두 번째부터 `-run-2`)
+- 진행 상태는 `runs/<slug>/state.json`에 기록한다: 하루가 정한 화면(P2 뒤), 현재 단계, 게이트별 결과, 실패 횟수
 - P1 자동 수집은 유아이볼(실제 앱 화면 DB, MCP)로 한다. 모아가 `references/auto/*.md`로 정리하고, P1 게이트가 `url`(유아이볼 주소)·`app`·`screen` 줄이 있는지 본다.
 - 진행 상황은 메인 세션이 AI 팀 사무실 상황판(사무실 페이지 db의 `harness/<slug>`)에 올린다. 사무실은 보여주기만 하고, 판정·승인은 Claude Code에서만 한다. 절차는 run-harness 스킬의 "사무실 동기화".
 - 판정 수치는 `harness/rules.yaml` 한 파일에만 둔다. 다른 문서에는 숫자를 복사하지 않고 키 이름으로 가리킨다.
@@ -64,8 +64,7 @@ office.html 등 다른 작업에는 적용하지 않는다. 실행 절차는 `.c
 - 이 표는 `.claude/hooks/guard-write.mjs`, `.claude/hooks/guard-bash.mjs`가 강제한다.
 
 ## 첫 실행 때 묻는 것
-1. 이번에 만들 화면
-2. `references/manual/`에 레퍼런스를 넣었는지 (자동 수집은 유아이볼로 모아가 한다)
+1. `references/manual/`에 레퍼런스를 넣었는지 (자동 수집은 유아이볼로 모아가 한다)
 
 ## 절대 하지 않는 것
 - approval.md를 대신 쓰거나 고치기, approve.mjs를 대신 실행하기
@@ -78,9 +77,8 @@ office.html 등 다른 작업에는 적용하지 않는다. 실행 절차는 `.c
 
 ## 새 앱 준비 (처음 한 번)
 이 폴더는 `new-app.sh`로 만든 새 앱용 하네스다. 아래가 채워질 때까지 해당 판정은 건너뛴다.
-1. `docs/prd.md` — 5블록을 채운다 (특히 3번 시나리오). "4. 만들 화면"이 사무실 앱의 화면 버튼이 된다.
-2. `harness/rules.yaml`의 `screens` — "4. 만들 화면"의 이름마다 파일 이름 한 줄 (예: `홈: home`).
-3. `docs/story-service.md` — PRD 5번을 O/X로 판정할 수 있는 조건으로 바꾼다. 확정되면 `rules.yaml`의 `service`에 옮긴다.
-4. `docs/design.md` — 디자인 규칙. 확정되면 `rules.yaml`의 `style`(색·폰트·모서리 등)과 `frame`(기준 화면 크기)에 옮긴다.
-5. `.claude/agents/moa.md`의 유아이볼 검색 요령을 내 서비스 분야에 맞게 바꾼다.
-6. 규칙을 고친 뒤에는 한 화면을 끝까지 돌려 보고 `node harness/scripts/verify.mjs <실행 이름> p5`가 의도대로 판정하는지 확인한다.
+1. `docs/prd.md` — 5블록을 채운다 (특히 3번 시나리오). "4. 만들 화면"은 비워 둬도 된다 — 하루가 시나리오와 리서치를 보고 정한다.
+2. `docs/story-service.md` — PRD 5번을 O/X로 판정할 수 있는 조건으로 바꾼다. 확정되면 `rules.yaml`의 `service`에 옮긴다.
+3. `docs/design.md` — 디자인 규칙. 확정되면 `rules.yaml`의 `style`(색·폰트·모서리 등)과 `frame`(기준 화면 크기)에 옮긴다.
+4. `.claude/agents/moa.md`의 유아이볼 검색 요령을 내 서비스 분야에 맞게 바꾼다.
+5. 규칙을 고친 뒤에는 한 번 끝까지 돌려 보고 `node harness/scripts/verify.mjs <실행 이름> p5`가 의도대로 판정하는지 확인한다.

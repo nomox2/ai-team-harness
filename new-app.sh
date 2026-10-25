@@ -48,9 +48,8 @@ cat > "$DEST/README.md" <<EOF
 
 \`new-app.sh\`로 만든 하네스 폴더예요. 처음 한 번 \`CLAUDE.md\`의 "새 앱 준비"를 따라 채우면 돼요.
 
-1. \`docs/prd.md\` 5블록 채우기 (4번이 화면 버튼이 돼요)
-2. \`harness/rules.yaml\`의 \`screens\`에 화면 이름 → 파일 이름 적기
-3. Claude Code를 이 폴더에서 열고 \`/run-harness <화면 이름>\`
+1. \`docs/prd.md\` 5블록 채우기 (3번 시나리오가 가장 중요해요. 만들 화면은 하네스가 정해요)
+2. Claude Code를 이 폴더에서 열고 \`/run-harness\` (또는 사무실 앱의 "새 실행")
 EOF
 
 (cd "$DEST" && git init -q -b main && git add -A && git commit -q -m "새 앱 하네스: $NAME")
@@ -58,7 +57,6 @@ EOF
 echo "만들었어요: $DEST"
 echo
 echo "다음 순서"
-echo "  1) $DEST/docs/prd.md 를 채워요 (5블록, 4번이 사무실 앱의 화면 버튼이 돼요)"
-echo "  2) $DEST/harness/rules.yaml 의 screens 에 '화면 이름: 파일 이름'을 적어요"
-echo "  3) 사무실 앱으로 보려면: OFFICE_ROOT=\"$DEST\" OFFICE_PORT=4779 node <ai-team 폴더>/server.mjs"
+echo "  1) $DEST/docs/prd.md 를 채워요 (5블록, 만들 화면은 하네스가 정해요)"
+echo "  2) 사무실 앱으로 보려면: OFFICE_ROOT=\"$DEST\" OFFICE_PORT=4779 node <ai-team 폴더>/server.mjs"
 echo "     (앱마다 포트를 다르게 하면 여러 개를 동시에 열 수 있어요)"

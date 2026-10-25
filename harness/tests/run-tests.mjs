@@ -30,9 +30,9 @@ function expect(label, out, result, failId) {
 
 /* ---------- 가짜 실행 만들기 ---------- */
 let seq = 0;
-function newRun({ screens = ['홈'] } = {}) {
+function newRun() {
   const slug = 't' + (++seq);
-  put(slug, 'state.json', JSON.stringify({ slug, screens, phase: 'p1', gates: {}, failures: {}, log: [] }));
+  put(slug, 'state.json', JSON.stringify({ slug, screens: [], phase: 'p1', gates: {}, failures: {}, log: [] }));
   return slug;
 }
 function p1(slug, { manual = Math.max(MIN_REF, 3), evidence = 'references/manual/m1.png' } = {}) {
@@ -82,20 +82,24 @@ expect('P1 · avif 근거 파일 → 통과', run(s, 'p1'), 'pass');
 s = newRun(); p1(s, { manual: MIN_REF - 1 }); put(s, 'p1-research/references/manual/.DS_Store', 'x');
 expect('P1 · 숨김 파일(.DS_Store)은 레퍼런스로 안 셈 → 실패', run(s, 'p1'), 'fail', '레퍼런스 수');
 
-/* ---------- 아직 미정 (리서치만) ---------- */
-const EX = loadRules().explore;
-s = newRun({ screens: [EX.screen] }); p1(s); expect(`미정 · P1 리서치 → 통과`, run(s, 'p1'), 'pass');
-expect('미정 · P2 판정 요청 → 오류', run(s, 'p2'), 'error', '미정 실행');
-s = newRun({ screens: [EX.screen, '홈'] }); p1(s); expect('미정 · 다른 화면과 같이 고름 → 오류', run(s, 'p1'), 'error', 'state.screens');
-
-/* ---------- P2 ---------- */
-const spec = '## 홈\n- 제목\n- 남은 예산\n- 최근 내역\n';
-s = newRun(); put(s, 'p2-design-spec/screens.md', spec); expect('P2 · 고른 화면 설계 → 통과', run(s, 'p2'), 'pass');
-s = newRun(); put(s, 'p2-design-spec/screens.md', spec + '## 마이페이지\n- x\n'); expect('P2 · PRD에 없는 화면 → 실패', run(s, 'p2'), 'fail', '화면 이름');
-s = newRun(); put(s, 'p2-design-spec/screens.md', '## 홈\n- 제목\n'); expect('P2 · 요소 부족 → 실패', run(s, 'p2'), 'fail', '홈 · 설계');
+/* ---------- P2: 만들 화면은 하루가 정한다 ---------- */
+const P2 = loadRules().p2;
+const sec = (name, key, n = 3) => `## ${name}\n${key === null ? '' : `파일: ${key}\n`}${Array.from({ length: n }, (_, i) => `- 요소 ${i + 1}\n`).join('')}`;
+const spec = sec('홈', 'home');
+s = newRun(); put(s, 'p2-design-spec/screens.md', spec); expect('P2 · 화면 1개 설계 → 통과', run(s, 'p2'), 'pass');
+s = newRun(); put(s, 'p2-design-spec/screens.md', spec + sec('마이페이지', 'my-page')); expect('P2 · 하루가 정한 새 화면 → 통과', run(s, 'p2'), 'pass');
+s = newRun(); put(s, 'p2-design-spec/screens.md', '## 화면을 이렇게 정한 이유\n시나리오 1에 필요한 화면부터 만든다.\n' + spec + '## 다음에 만들 화면\n통계는 다음 실행에서.\n');
+expect('P2 · 정한 이유·다음 화면 섹션은 화면으로 안 셈 → 통과', run(s, 'p2'), 'pass');
+s = newRun(); expect('P2 · screens.md 없음 → 실패', run(s, 'p2'), 'fail', 'screens.md');
+s = newRun(); put(s, 'p2-design-spec/screens.md', sec('홈', 'home', 1)); expect('P2 · 요소 부족 → 실패', run(s, 'p2'), 'fail', '홈 · 설계');
+s = newRun(); put(s, 'p2-design-spec/screens.md', sec('홈', null)); expect('P2 · 파일 이름 줄 없음 → 실패', run(s, 'p2'), 'fail', '홈 · 파일 이름');
+s = newRun(); put(s, 'p2-design-spec/screens.md', sec('홈', 'Home 화면')); expect('P2 · 파일 이름에 한글·대문자 → 실패', run(s, 'p2'), 'fail', '홈 · 파일 이름');
+s = newRun(); put(s, 'p2-design-spec/screens.md', spec + sec('메인', 'home')); expect('P2 · 파일 이름 겹침 → 실패', run(s, 'p2'), 'fail', '파일 이름 겹침');
+s = newRun(); put(s, 'p2-design-spec/screens.md', Array.from({ length: P2.max_screens + 1 }, (_, i) => sec(`화면${i}`, `s${i}`)).join(''));
+expect('P2 · 화면 수 상한 초과 → 실패', run(s, 'p2'), 'fail', '화면 수');
 
 /* ---------- P3 ---------- */
-const p3 = (html, two = true, screens) => { const x = newRun({ screens }); put(x, 'p3-concept/key-a.html', html); if (two) put(x, 'p3-concept/key-b.html', page()); return x; };
+const p3 = (html, two = true) => { const x = newRun(); put(x, 'p3-concept/key-a.html', html); if (two) put(x, 'p3-concept/key-b.html', page()); return x; };
 expect('P3 · 키스크린 1개 → 실패', run(p3(page(), false), 'p3'), 'fail', '키스크린 수');
 expect('P3 · 키스크린 2개 정상 → 통과', run(p3(page()), 'p3'), 'pass');
 expect('P3 · Pretendard 웹폰트 링크 → 통과', run(p3(page({ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">' })), 'p3'), 'pass');
@@ -124,8 +128,9 @@ expect('승인 · 승인 뒤 시안 수정 → 실패(무효)', run(s, 'approval
 approve(s, '--reject', '톤이 어두움'); expect('승인 · 반려 → 실패', run(s, 'approval'), 'fail', '승인');
 
 /* ---------- P4 · P5 ---------- */
-function p45(screenHtml, { approved = true, screen = '홈', file = 'home' } = {}) {
-  const x = p3(page(), true, [screen]);
+function p45(screenHtml, { approved = true, screen = '홈', file = 'home', spec = true } = {}) {
+  const x = p3(page(), true);
+  if (spec) put(x, 'p2-design-spec/screens.md', sec(screen, file));
   if (approved) approve(x);
   put(x, 'p4-design/tokens.md', '# tokens\n');
   put(x, `p4-design/screens/${file}.html`, screenHtml);
@@ -134,6 +139,9 @@ function p45(screenHtml, { approved = true, screen = '홈', file = 'home' } = {}
 const h = o => page({ body: homeBody(o) });
 expect('P4 · 승인 없음 → 오류', run(p45(page(), { approved: false }), 'p4'), 'error');
 expect('P4 · 정상 → 통과', run(p45(page()), 'p4'), 'pass');
+expect('P4 · P2 설계 없음 → 오류', run(p45(page(), { spec: false }), 'p4'), 'error', 'screens.md');
+s = p45(page()); put(s, 'p2-design-spec/screens.md', spec + sec('통계', 'stats'));
+expect('P4 · 설계한 화면의 파일 없음 → 실패', run(s, 'p4'), 'fail', '통계 · 화면');
 expect('P5 · 정상 → 통과', run(p45(page()), 'p5'), 'pass');
 expect('P5 · 기록에 금액 없음 → 실패', run(p45(h({ items: list(rec({ omit: 'amount' })) })), 'p5'), 'fail', '금액');
 expect('P5 · 기록에 카테고리 없음 → 실패', run(p45(h({ items: list(rec({ omit: 'category' })) })), 'p5'), 'fail', '카테고리');

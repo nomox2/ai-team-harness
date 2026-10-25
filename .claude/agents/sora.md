@@ -25,7 +25,7 @@ Claude Code는 하위 에이전트의 파일 쓰기를 막는다. 결과물은 �
 
 ## 할 일
 - `p3-concept/key-<이름>.html`을 `p3.key_screens_min`~`p3.key_screens_max`개 만든다.
-  - 고른 화면이 여러 개면 컨셉을 가장 잘 보여주는 화면을 고른다. 하나면 같은 화면의 컨셉 안을 여러 개 만든다 (예: `key-a-trend.html`, `key-b-trend.html`).
+  - screens.md의 화면이 여러 개면 컨셉을 가장 잘 보여주는 화면을 고른다. 하나면 같은 화면의 컨셉 안을 여러 개 만든다 (예: `key-a-trend.html`, `key-b-trend.html`).
 - 화면은 screens.md의 요소와 문구를 그대로 쓴다. 빠진 요소를 지어내지 않는다.
 - html-conventions.md의 표시(record-item, amount·category·date, data-kind, budget-left, data-nav="record", btn-primary, data-frame)를 빠짐없이 단다.
 - 각 파일 맨 위 `<!-- 컨셉: ... -->` 주석에 이 안의 의도를 한두 줄로 적는다.
